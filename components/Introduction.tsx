@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { INTRO_SLIDES } from '../constants';
+import { INTRO_SLIDES_V2 } from '../introSlidesV2';
 import { 
     ArrowLeftIcon, ArrowRightIcon, RocketLaunchIcon, AtomIcon, BeakerIcon, BrainIcon, CodeIcon,
     HistoryIcon, QuantumChipIcon, SuperpositionIcon, EntanglementIcon, InterferenceIcon,
@@ -11,7 +11,7 @@ interface IntroductionProps {
   onStartCourse: () => void;
 }
 
-type TemplateStyle = 'classic' | 'neon';
+type TemplateStyle = 'classic' | 'neon' | 'bright';
 
 // --- Animation Components ---
 
@@ -124,57 +124,26 @@ const slideAnimations: { [key: string]: React.ReactElement } = {
 
 export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [template, setTemplate] = useState<TemplateStyle>('neon');
+  const [template, setTemplate] = useState<TemplateStyle>('bright');
 
-  const expandedSlides = useMemo<Slide[]>(() => {
-    const baseSlides: Slide[] = [];
-
-    INTRO_SLIDES.forEach((slide) => {
-      const paragraphs = slide.content.split('\n\n');
-
-      if (paragraphs.length <= 2) {
-        baseSlides.push(slide);
-      } else {
-        paragraphs.forEach((para, idx) => {
-          baseSlides.push({
-            ...slide,
-            title: `${slide.title} (${idx + 1}/${paragraphs.length})`,
-            content: para,
-          });
-        });
-      }
-    });
-
-    const result: Slide[] = [...baseSlides];
-    let i = 0;
-
-    while (result.length < 100 && baseSlides.length > 0) {
-      const base = baseSlides[i % baseSlides.length];
-      result.push({
-        ...base,
-        title: `${base.title} – Quick Practice`,
-        content: `Pause and test yourself:\n\n• Can you explain this idea in your own words?\n• Can you sketch a small circuit or picture?\n\nKey idea recap:\n\n${base.content.split('\n\n')[0]}`,
-      });
-      i += 1;
-    }
-
-    return result.length > 100 ? result.slice(0, 100) : result;
+  const slides = useMemo<Slide[]>(() => {
+    return INTRO_SLIDES_V2.slice(0, 100);
   }, []);
 
-  const slideData = expandedSlides[currentSlide];
+  const slideData = slides[currentSlide];
 
   const groupedSlides = useMemo(() => {
-    return expandedSlides.reduce((acc, slide, index) => {
+    return slides.reduce((acc, slide, index) => {
       if (!acc[slide.section]) {
         acc[slide.section] = [];
       }
       acc[slide.section].push({ ...slide, originalIndex: index });
       return acc;
     }, {} as Record<string, (Slide & { originalIndex: number })[]>);
-  }, [expandedSlides]);
+  }, [slides]);
 
   const handleNext = () => {
-    if (currentSlide < expandedSlides.length - 1) {
+    if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     }
   };
@@ -200,21 +169,30 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
   const backgroundClass =
     template === 'neon'
       ? 'bg-gradient-to-br from-slate-950 via-sky-950 to-fuchsia-950'
+      : template === 'bright'
+      ? 'bg-gradient-to-br from-sky-50 via-white to-amber-50'
       : 'bg-slate-900';
 
   const cardClass =
     template === 'neon'
       ? 'bg-slate-900/60 border border-fuchsia-500/40 shadow-2xl shadow-fuchsia-900/40'
+      : template === 'bright'
+      ? 'bg-white/90 border border-sky-200 shadow-2xl shadow-sky-200/60'
       : 'bg-slate-900/50 border border-slate-700 shadow-xl shadow-slate-900/40';
 
   const topBorderClass =
     template === 'neon'
       ? 'bg-gradient-to-r from-fuchsia-400/0 via-fuchsia-400 to-cyan-300/0'
+      : template === 'bright'
+      ? 'bg-gradient-to-r from-sky-400/0 via-sky-500 to-amber-400/0'
       : 'bg-gradient-to-r from-fuchsia-500/0 via-fuchsia-500 to-cyan-400/0';
+
+  const bodyTextClass =
+    template === 'bright' ? 'text-slate-800' : 'text-slate-200';
 
   return (
     <div
-      className={`flex flex-col items-center justify-center min-h-screen font-sans text-slate-200 overflow-hidden relative ${backgroundClass}`}
+      className={`flex flex-col items-center justify-center min-h-screen font-sans overflow-hidden relative ${backgroundClass}`}
     >
       <div className="particles"></div>
       <button 
@@ -263,7 +241,7 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
               </div>
 
               <div
-                className="text-slate-200 text-base md:text-lg leading-relaxed space-y-4 max-w-3xl mx-auto animate-text-slide-up"
+                className={`${bodyTextClass} text-base md:text-lg leading-relaxed space-y-4 max-w-3xl mx-auto animate-text-slide-up`}
                 style={{ animationDelay: '0.3s' }}
               >
                   {slideData.content.split('\n\n').map((paragraph, index) => (
@@ -278,7 +256,7 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
        {/* Navigation */}
       <div className="relative z-10 w-full max-w-7xl mx-auto p-4 flex items-center justify-between">
         <div className="text-sm font-medium text-slate-300">
-          Slide {currentSlide + 1} / {expandedSlides.length}
+          Slide {currentSlide + 1} / {slides.length}
         </div>
 
         <div className="flex items-center space-x-4">
@@ -288,12 +266,12 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
                   aria-label="Previous Slide"
               > <ArrowLeftIcon /> </button>
               <button
-                  onClick={handleNext} disabled={currentSlide === expandedSlides.length - 1}
+                  onClick={handleNext} disabled={currentSlide === slides.length - 1}
                   className="p-2 rounded-full bg-slate-700/50 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   aria-label="Next Slide"
               > <ArrowRightIcon /> </button>
               
-              {currentSlide === expandedSlides.length - 1 ? (
+              {currentSlide === slides.length - 1 ? (
                    <button
                       onClick={onStartCourse}
                       className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-sky-500 to-fuchsia-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-fuchsia-900/50 fade-in"
@@ -324,6 +302,16 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
               }`}
             >
               Neon
+            </button>
+            <button
+              onClick={() => setTemplate('bright')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                template === 'bright'
+                  ? 'bg-white text-sky-700 border-sky-400'
+                  : 'bg-slate-900/60 text-slate-300 border-slate-600 hover:border-slate-400'
+              }`}
+            >
+              Bright
             </button>
           </div>
         </div>
