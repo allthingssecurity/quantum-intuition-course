@@ -87,6 +87,75 @@ qc.measure([0, 1], [0, 1])
 # Execute
 `,
       },
+      {
+        id: 'beginner-5',
+        title: 'Measuring Probabilities',
+        difficulty: 'Beginner',
+        concept: 'Running the same simple circuit many times to see quantum randomness turn into stable probabilities.',
+        description: 'In quantum computing, a single run of a circuit gives you one random sample. To see the underlying probabilities, you repeat the same circuit many times and build a histogram of outcomes. This exercise reinforces the idea that probabilities emerge from repeated measurements.',
+        theory: 'The Born rule says that the probability of getting a particular outcome is the squared magnitude of its amplitude in the quantum state. A single measurement is too noisy to reveal that probability. But as you repeat the experiment and collect counts, the relative frequencies of each outcome converge to the true probabilities. This mirrors how flipping a fair coin many times approaches 50% heads and 50% tails.',
+        initialCode: `from qiskit import QuantumCircuit, execute, Aer
+
+# One-qubit superposition measured many times
+qc = QuantumCircuit(1, 1)
+
+# Create equal superposition of |0⟩ and |1⟩
+qc.h(0)
+
+# Measure
+qc.measure(0, 0)
+
+# Try different numbers of shots in the simulator to see
+# how the histogram stabilizes as shots increase.
+`,
+      },
+      {
+        id: 'beginner-6',
+        title: 'Two-Qubit Superposition',
+        difficulty: 'Beginner',
+        concept: 'Creating a uniform superposition over four basis states with two qubits.',
+        description: 'With two qubits, there are four basis states: |00⟩, |01⟩, |10⟩, and |11⟩. Applying a Hadamard gate to each qubit creates a state where each outcome is equally likely. This example helps you see how the number of possibilities grows exponentially with the number of qubits.',
+        theory: 'Each H gate maps a single qubit from |0⟩ to (|0⟩ + |1⟩)/√2. With two qubits, applying H ⊗ H creates a superposition of all four 2-bit strings, each with amplitude 1/2. Squaring the amplitude gives a probability of 1/4 for each outcome. This explosion of possibilities is what gives quantum computers their expressive power—but we still only get one outcome per measurement.',
+        initialCode: `from qiskit import QuantumCircuit, execute, Aer
+
+qc = QuantumCircuit(2, 2)
+
+# Put both qubits into superposition
+qc.h(0)
+qc.h(1)
+
+# Measure both
+qc.measure([0, 1], [0, 1])
+
+# Look at the counts: |00⟩, |01⟩, |10⟩, |11⟩ should appear with similar frequency.
+`,
+      },
+      {
+        id: 'beginner-7',
+        title: 'Interference with H-X-H',
+        difficulty: 'Beginner',
+        concept: 'Using a simple three-gate sequence to show how quantum interference can restore the starting state.',
+        description: 'This circuit applies an H gate, then an X gate, then another H gate. Surprisingly, the qubit ends back in the definite state |1⟩, even though we created a superposition in the middle. This is an example of interference: different paths through the circuit cancel or reinforce each other.',
+        theory: 'Applying H to |0⟩ creates (|0⟩ + |1⟩)/√2. The X gate swaps |0⟩ and |1⟩, turning this into (|1⟩ + |0⟩)/√2, which is the same state. Applying H again maps this superposition to |1⟩ with certainty. Viewed as waves, the contributions to |0⟩ cancel while the contributions to |1⟩ add up. This “destructive vs constructive” interference is the heart of many quantum algorithms.',
+        initialCode: `from qiskit import QuantumCircuit, execute, Aer
+
+qc = QuantumCircuit(1, 1)
+
+# Start in |0⟩, create a superposition
+qc.h(0)
+
+# Flip the state
+qc.x(0)
+
+# Apply H again
+qc.h(0)
+
+# Measure
+qc.measure(0, 0)
+
+# You should almost always see the outcome 1.
+`,
+      },
     ],
   },
   {
@@ -198,6 +267,65 @@ qc.z(2).c_if(0, 1) # if classical bit 0 is 1, apply Z
 qc.measure(2, 2)
 
 # The result of the third classical bit should match the teleported state's probability.
+`,
+      },
+      {
+        id: 'intermediate-4',
+        title: 'Phase Kickback',
+        difficulty: 'Intermediate',
+        concept: 'Seeing how a controlled phase operation can imprint information back onto a control qubit.',
+        description: 'Phase kickback is a subtle but powerful effect: when a control qubit in superposition controls a phase operation, the phase change can effectively act back on the control. This is a key ingredient in algorithms like phase estimation and Bernstein–Vazirani.',
+        theory: 'Consider a control qubit in (|0⟩ + |1⟩)/√2 and a target in |1⟩. A controlled-Z gate only flips the phase of the |11⟩ component. If you write out the full state and then regroup terms, you see that the control qubit now carries a phase that depends on the target. This “kickback” lets us learn about a unitary’s eigenvalues by looking at simple qubits, rather than the whole system.',
+        initialCode: `from qiskit import QuantumCircuit, execute, Aer
+
+qc = QuantumCircuit(2, 2)
+
+# Control in superposition, target in |1⟩
+qc.h(0)
+qc.x(1)
+qc.barrier()
+
+# Controlled-Z introduces a phase on |11⟩
+qc.cz(0, 1)
+qc.barrier()
+
+# Bring control back to the computational basis
+qc.h(0)
+
+qc.measure([0, 1], [0, 1])
+
+# Inspect the counts for qubit 0 to see the effect of kickback.
+`,
+      },
+      {
+        id: 'intermediate-5',
+        title: 'A Tiny Phase Estimation Toy',
+        difficulty: 'Intermediate',
+        concept: 'Estimating a very simple phase using a one-qubit “eigenstate” and one control qubit.',
+        description: 'This is a hand-held version of quantum phase estimation. We use a control qubit and a target qubit prepared in a state that picks up a known phase. After a controlled operation and a Hadamard, the probability of measuring 0 or 1 on the control reflects the phase.',
+        theory: 'In full phase estimation, many control qubits capture different bits of a phase encoded in a unitary’s eigenvalue. Here we use a single control and a simple phase gate to show the basic pattern: prepare control in superposition, apply a controlled phase, invert the superposition, then measure. The resulting statistics are directly tied to the phase angle.',
+        initialCode: `from qiskit import QuantumCircuit, execute, Aer
+import numpy as np
+
+qc = QuantumCircuit(2, 1)
+
+# Control in superposition
+qc.h(0)
+
+# Target in |1⟩
+qc.x(1)
+qc.barrier()
+
+# Controlled phase of pi/2 on the target
+qc.cp(np.pi/2, 0, 1)
+qc.barrier()
+
+# Interfere on the control
+qc.h(0)
+
+qc.measure(0, 0)
+
+# The probability of measuring 0 vs 1 reflects the applied phase.
 `,
       },
     ],
@@ -379,6 +507,54 @@ qc.cx(0, 1)
 # A Toffoli gate (ccx) is needed for a full correction circuit,
 # but for this example, let's just measure the main qubit.
 qc.measure(0, 0)
+`,
+      },
+      {
+        id: 'advanced-5',
+        title: 'Time Evolution of a Single Qubit',
+        difficulty: 'Advanced',
+        concept: 'Simulating a very simple Schrödinger-style time evolution using repeated small rotations.',
+        description: 'Here we approximate continuous time evolution by applying the same small rotation gate many times. Each step is like a tiny “tick” of time in the Schrödinger equation, causing the state vector to precess around an axis on the Bloch sphere.',
+        theory: 'The Schrödinger equation says that the quantum state changes smoothly over time under a Hamiltonian H. In circuit form, this continuous evolution is implemented as a unitary e^{-iHt}. For simple Hamiltonians, this looks like a rotation around a fixed axis. By composing many small rotations (short time steps), you approximate the continuous motion. This example uses repeated RY rotations to imitate such dynamics.',
+        initialCode: `from qiskit import QuantumCircuit, Aer, execute
+import numpy as np
+
+steps = 8
+theta = np.pi / 16  # small rotation per step
+
+qc = QuantumCircuit(1, 1)
+
+# Start in |0⟩, then apply many small rotations
+for _ in range(steps):
+    qc.ry(theta, 0)
+
+qc.barrier()
+qc.measure(0, 0)
+
+# Try changing 'steps' or 'theta' to see how the final probability of 1 changes.
+`,
+      },
+      {
+        id: 'advanced-6',
+        title: 'GHZ State and Many-Body Entanglement',
+        difficulty: 'Advanced',
+        concept: 'Building a three-qubit GHZ state to illustrate strong multi-qubit correlations.',
+        description: 'The GHZ state (|000⟩ + |111⟩)/√2 is a classic example of multi-particle entanglement. All three qubits are perfectly correlated: measuring any one of them gives you information about the others, and certain joint measurements violate classical intuitions about locality.',
+        theory: 'To create a GHZ state, you put one qubit into superposition and then “copy” that information to others using CNOTs. The resulting state cannot be written as a product of individual qubit states—it is genuinely entangled across all three. GHZ states are useful for studying non-classical correlations, error-correcting codes, and as resources in quantum communication protocols.',
+        initialCode: `from qiskit import QuantumCircuit, Aer, execute
+
+qc = QuantumCircuit(3, 3)
+
+# Create GHZ: (|000⟩ + |111⟩)/√2
+qc.h(0)
+qc.cx(0, 1)
+qc.cx(1, 2)
+
+qc.barrier()
+
+qc.measure([0, 1, 2], [0, 1, 2])
+
+# Look at the counts: you should mostly see 000 and 111, rarely anything else.
 `,
       },
     ],

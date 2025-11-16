@@ -11,6 +11,8 @@ interface IntroductionProps {
   onStartCourse: () => void;
 }
 
+type TemplateStyle = 'classic' | 'neon';
+
 // --- Animation Components ---
 
 const BlochSphere: React.FC = () => (
@@ -122,23 +124,57 @@ const slideAnimations: { [key: string]: React.ReactElement } = {
 
 export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const slideData = INTRO_SLIDES[currentSlide];
+  const [template, setTemplate] = useState<TemplateStyle>('neon');
 
-  const groupedSlides = useMemo(() => {
-    // FIX: By casting the initial value of `reduce`, TypeScript can correctly infer the type
-    // of the accumulator (`acc`) and the final returned object (`groupedSlides`),
-    // which resolves the error where `slides.map` was called on an `unknown` type.
-    return INTRO_SLIDES.reduce((acc, slide, index) => {
-        if (!acc[slide.section]) {
-            acc[slide.section] = [];
-        }
-        acc[slide.section].push({ ...slide, originalIndex: index });
-        return acc;
-    }, {} as Record<string, (Slide & { originalIndex: number })[]>);
+  const expandedSlides = useMemo<Slide[]>(() => {
+    const baseSlides: Slide[] = [];
+
+    INTRO_SLIDES.forEach((slide) => {
+      const paragraphs = slide.content.split('\n\n');
+
+      if (paragraphs.length <= 2) {
+        baseSlides.push(slide);
+      } else {
+        paragraphs.forEach((para, idx) => {
+          baseSlides.push({
+            ...slide,
+            title: `${slide.title} (${idx + 1}/${paragraphs.length})`,
+            content: para,
+          });
+        });
+      }
+    });
+
+    const result: Slide[] = [...baseSlides];
+    let i = 0;
+
+    while (result.length < 100 && baseSlides.length > 0) {
+      const base = baseSlides[i % baseSlides.length];
+      result.push({
+        ...base,
+        title: `${base.title} – Quick Practice`,
+        content: `Pause and test yourself:\n\n• Can you explain this idea in your own words?\n• Can you sketch a small circuit or picture?\n\nKey idea recap:\n\n${base.content.split('\n\n')[0]}`,
+      });
+      i += 1;
+    }
+
+    return result.length > 100 ? result.slice(0, 100) : result;
   }, []);
 
+  const slideData = expandedSlides[currentSlide];
+
+  const groupedSlides = useMemo(() => {
+    return expandedSlides.reduce((acc, slide, index) => {
+      if (!acc[slide.section]) {
+        acc[slide.section] = [];
+      }
+      acc[slide.section].push({ ...slide, originalIndex: index });
+      return acc;
+    }, {} as Record<string, (Slide & { originalIndex: number })[]>);
+  }, [expandedSlides]);
+
   const handleNext = () => {
-    if (currentSlide < INTRO_SLIDES.length - 1) {
+    if (currentSlide < expandedSlides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     }
   };
@@ -151,8 +187,8 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-        if(e.key === 'ArrowRight') handleNext();
-        else if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'ArrowLeft') handlePrev();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -161,8 +197,25 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
   const AnimationComponent = slideData.animation ? slideAnimations[slideData.animation] : null;
   const IconComponent = slideData.icon && !AnimationComponent ? slideIcons[slideData.icon] : null;
 
+  const backgroundClass =
+    template === 'neon'
+      ? 'bg-gradient-to-br from-slate-950 via-sky-950 to-fuchsia-950'
+      : 'bg-slate-900';
+
+  const cardClass =
+    template === 'neon'
+      ? 'bg-slate-900/60 border border-fuchsia-500/40 shadow-2xl shadow-fuchsia-900/40'
+      : 'bg-slate-900/50 border border-slate-700 shadow-xl shadow-slate-900/40';
+
+  const topBorderClass =
+    template === 'neon'
+      ? 'bg-gradient-to-r from-fuchsia-400/0 via-fuchsia-400 to-cyan-300/0'
+      : 'bg-gradient-to-r from-fuchsia-500/0 via-fuchsia-500 to-cyan-400/0';
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 font-sans text-slate-200 overflow-hidden relative">
+    <div
+      className={`flex flex-col items-center justify-center min-h-screen font-sans text-slate-200 overflow-hidden relative ${backgroundClass}`}
+    >
       <div className="particles"></div>
       <button 
           onClick={onStartCourse}
@@ -196,8 +249,8 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
 
         {/* Main Content */}
         <main className="w-full md:w-3/4 lg:w-4/5 mt-8 md:mt-0">
-          <div className="bg-slate-900/50 backdrop-blur-md relative border border-slate-700 rounded-xl shadow-2xl shadow-fuchsia-900/20">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-fuchsia-500/0 via-fuchsia-500 to-cyan-400/0 opacity-50"></div>
+          <div className={`${cardClass} backdrop-blur-md relative rounded-xl`}>
+            <div className={`absolute top-0 left-0 right-0 h-1 ${topBorderClass} opacity-70`}></div>
             
             <div key={currentSlide} className="min-h-[520px] p-8 md:p-12 flex flex-col justify-between text-center animate-content-zoom-in">
               <header className="animate-text-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -209,7 +262,10 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
                 {AnimationComponent || (IconComponent && React.cloneElement(IconComponent, { className: "w-28 h-28 text-slate-500" }))}
               </div>
 
-              <div className="text-slate-300 text-base md:text-lg leading-relaxed space-y-4 max-w-3xl mx-auto animate-text-slide-up" style={{ animationDelay: '0.3s' }}>
+              <div
+                className="text-slate-200 text-base md:text-lg leading-relaxed space-y-4 max-w-3xl mx-auto animate-text-slide-up"
+                style={{ animationDelay: '0.3s' }}
+              >
                   {slideData.content.split('\n\n').map((paragraph, index) => (
                       <p key={index}>{paragraph}</p>
                   ))}
@@ -221,23 +277,23 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
 
        {/* Navigation */}
       <div className="relative z-10 w-full max-w-7xl mx-auto p-4 flex items-center justify-between">
-           <div className="text-sm font-medium text-slate-400">
-              Slide {currentSlide + 1} / {INTRO_SLIDES.length}
-          </div>
+        <div className="text-sm font-medium text-slate-300">
+          Slide {currentSlide + 1} / {expandedSlides.length}
+        </div>
 
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4">
               <button
                   onClick={handlePrev} disabled={currentSlide === 0}
                   className="p-2 rounded-full bg-slate-700/50 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   aria-label="Previous Slide"
               > <ArrowLeftIcon /> </button>
               <button
-                  onClick={handleNext} disabled={currentSlide === INTRO_SLIDES.length - 1}
+                  onClick={handleNext} disabled={currentSlide === expandedSlides.length - 1}
                   className="p-2 rounded-full bg-slate-700/50 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   aria-label="Next Slide"
               > <ArrowRightIcon /> </button>
               
-              {currentSlide === INTRO_SLIDES.length - 1 ? (
+              {currentSlide === expandedSlides.length - 1 ? (
                    <button
                       onClick={onStartCourse}
                       className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-sky-500 to-fuchsia-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-fuchsia-900/50 fade-in"
@@ -246,7 +302,31 @@ export const Introduction: React.FC<IntroductionProps> = ({ onStartCourse }) => 
                       <span className="ml-2">Start Learning</span>
                   </button>
               ) : ( <div className="hidden md:block w-[178px]"></div> )}
+
+          <div className="hidden md:flex items-center space-x-2 ml-4">
+            <span className="text-xs text-slate-400 uppercase tracking-wide">Template</span>
+            <button
+              onClick={() => setTemplate('classic')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                template === 'classic'
+                  ? 'bg-slate-800 text-sky-300 border-sky-400'
+                  : 'bg-slate-900/60 text-slate-300 border-slate-600 hover:border-slate-400'
+              }`}
+            >
+              Classic
+            </button>
+            <button
+              onClick={() => setTemplate('neon')}
+              className={`px-3 py-1 text-xs rounded-full border ${
+                template === 'neon'
+                  ? 'bg-fuchsia-700/70 text-white border-fuchsia-300'
+                  : 'bg-slate-900/60 text-slate-300 border-slate-600 hover:border-slate-400'
+              }`}
+            >
+              Neon
+            </button>
           </div>
+        </div>
       </div>
       <footer className="absolute bottom-2 text-xs text-slate-600 z-10">
         Use Left/Right arrow keys for navigation
