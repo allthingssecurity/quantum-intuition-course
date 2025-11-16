@@ -2,7 +2,93 @@ import type { Slide } from './types';
 
 // 100-slide, non-repetitive, intuition-focused deck.
 export const INTRO_SLIDES_V2: Slide[] = [
-  // Track 1 – Qubit Notation & Amplitudes (1–10)
+  // Track 0 – Classical Information, Computation & Nature (1–12)
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'What Is Information?',
+    icon: 'BrainIcon',
+    content:
+      'At its core, information is the resolution of uncertainty.\n\nA single bit answers one yes/no question: is the light on, is the door open, did it rain today? Long messages are just many such questions answered in sequence.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Bits and Encoding',
+    icon: 'CodeIcon',
+    content:
+      'Classical computers store information as bits, each definitely 0 or 1.\n\nText, images and videos are all encoded as long strings of bits. Different file formats are just different rules for interpreting those strings.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Logic Gates and Circuits',
+    icon: 'CircuitIcon',
+    content:
+      'Classical logic gates like AND, OR and NOT transform input bits into output bits.\n\nBy wiring many gates together we build circuits that add numbers, sort lists or run entire operating systems. This is classical computation in hardware.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'What Is Computation?',
+    icon: 'BeakerIcon',
+    content:
+      'Computation is the process of taking an input description of a problem and systematically transforming it into an output answer using a fixed set of rules.\n\nThose rules can be a computer program, a flow chart or even instructions for a person doing math on paper.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Turing Machines in Plain Language',
+    icon: 'HistoryIcon',
+    content:
+      'Alan Turing imagined a very simple abstract machine: a tape of cells, a head that reads and writes 0s and 1s, and a small table of rules for moving left or right.\n\nHe showed that this model can implement any algorithm that can be computed, making it a universal description of computation.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Algorithms and Difficulty',
+    icon: 'RoadmapIcon',
+    content:
+      'An algorithm is a step-by-step method for solving a family of problems.\n\nSome algorithms are efficient (time grows slowly with input size); others explode in cost. Complexity theory studies how hard different problems are, even for ideal classical machines.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Why Classical Computers Struggle',
+    icon: 'BrainIcon',
+    content:
+      'Many real-world tasks involve an enormous number of possibilities: all routes for delivery trucks, all configurations of a molecule, all factor pairs of a large number.\n\nClassical algorithms often must explore these possibilities one by one or in clever patterns, but the search space can still be astronomically large.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'What Quantum Computers Aim to Solve',
+    icon: 'SparklesIcon',
+    content:
+      'Quantum computers are not faster at everything, but they promise big advantages for certain classes of problems.\n\nThese include simulating quantum systems (chemistry, materials), speeding up some searches and optimizations, and attacking some cryptographic schemes that rely on factoring and related hard problems.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Quantum in Nature: Photosynthesis',
+    icon: 'BeakerIcon',
+    content:
+      'Experiments suggest that in some photosynthetic complexes, energy can travel through molecules in a wavelike, quantum-coherent way.\n\nInstead of trying each path separately, the excitation explores many routes at once and interference helps steer it efficiently toward the reaction center.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Quantum in Nature: Bird Navigation',
+    icon: 'DnaIcon',
+    content:
+      'Migratory birds appear to sense the Earth’s magnetic field using a quantum mechanism in their eyes.\n\nLight creates pairs of correlated electron spins whose behavior depends on the magnetic field, subtly changing a chemical signal that the bird experiences as a visual pattern aligned with north.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Other Quantum Biology Examples',
+    icon: 'AtomIcon',
+    content:
+      'Researchers are exploring quantum roles in processes like smell and even speculative ideas about consciousness.\n\nWhether every proposal holds up or not, these studies show that nature is comfortable using quantum effects in warm, noisy environments.'
+  },
+  {
+    section: 'Track 0: Classical & Nature',
+    title: 'Summary: Classical vs Quantum Problems',
+    icon: 'RoadmapIcon',
+    content:
+      'Classical computers are amazing, but they struggle when the space of possibilities grows exponentially or when quantum physics itself must be simulated.\n\nQuantum computation uses the same quantum rules that nature exploits in molecules and materials, giving us a more natural language for those hard problems.'
+  },
+
+  // Track 1 – Qubit Notation & Amplitudes (13–22)
   {
     section: 'Track 1: Qubit Basics',
     title: 'Welcome to Quantum Intuition',
@@ -509,4 +595,3 @@ export const INTRO_SLIDES_V2: Slide[] = [
       'Quantum mechanics can feel strange at first, but strangeness fades as your intuition grows.\n\nWith this 100-slide overview as your map, the rest of the course—beginner, intermediate and advanced exercises—should become much easier to understand and enjoy.'
   }
 ];
-
