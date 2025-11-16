@@ -1,9 +1,9 @@
 {
-  "name": "quantum-learning-platform",
+  "name": "quantum-intuition-course",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://allthingssecurity.github.io/quantum-learning-platform",
+  "homepage": "https://allthingssecurity.github.io/quantum-intuition-course",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
